@@ -1,0 +1,7 @@
+result
+result-*
+*.elc
+*.eln
+.DS_Store
+*~
+.#*

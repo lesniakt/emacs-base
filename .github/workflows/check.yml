@@ -1,0 +1,23 @@
+name: Check
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native:
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: nixbuild/nix-quick-install-action@2c9db80fb984ceb1bcaa77cdda3fdf8cfba92035 # v34
+      - run: nix flake check -L
+      - run: nix build .#activation --no-link
+      - name: Loopback SSH integration
+        if: runner.os == 'Linux'
+        run: nix shell nixpkgs#python3 nixpkgs#openssh --command python3 tests/ssh-fixture.py
